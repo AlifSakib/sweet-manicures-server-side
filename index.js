@@ -39,6 +39,22 @@ app.get("/services", async (req, res) => {
   try {
     const query = {};
     const cursor = serviceCollection.find(query);
+    const services = await cursor.limit(3).toArray();
+    res.json({
+      success: true,
+      data: services,
+    });
+  } catch (error) {
+    res.json({
+      success: false,
+    });
+  }
+});
+
+app.get("/services/all", async (req, res) => {
+  try {
+    const query = {};
+    const cursor = serviceCollection.find(query);
     const services = await cursor.toArray();
     res.json({
       success: true,
