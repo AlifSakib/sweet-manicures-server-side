@@ -56,14 +56,28 @@ app.get("/services/all", async (req, res) => {
     const query = {};
     const cursor = serviceCollection.find(query);
     const services = await cursor.toArray();
+    const count = await serviceCollection.estimatedDocumentCount();
     res.json({
       success: true,
       data: services,
+      count: count,
     });
   } catch (error) {
     res.json({
       success: false,
     });
+  }
+});
+
+app.post("/services", async (req, res) => {
+  try {
+    const service = req.body;
+    const result = await serviceCollection.insertOne(service);
+    res.json({
+      success: true,
+    });
+  } catch (error) {
+    success: false;
   }
 });
 
@@ -122,7 +136,7 @@ app.get("/reviews", async (req, res) => {
         email: req.query.email,
       };
     }
-    console.log(query);
+
     const cursor = reviewCollections.find(query);
     const reviews = await cursor.toArray();
     res.json({
