@@ -114,6 +114,42 @@ app.get("/reviews/:id", async (req, res) => {
   }
 });
 
+app.get("/reviews", async (req, res) => {
+  try {
+    let query = {};
+    if (req.query.email) {
+      query = {
+        email: req.query.email,
+      };
+    }
+    console.log(query);
+    const cursor = reviewCollections.find(query);
+    const reviews = await cursor.toArray();
+    res.json({
+      success: true,
+      data: reviews,
+    });
+  } catch (error) {
+    success: false;
+  }
+});
+
+app.delete("/reviews/:id", async (req, res) => {
+  try {
+    const id = req.params.id;
+    const query = { _id: ObjectId(id) };
+    const result = await reviewCollections.deleteOne(query);
+    res.json({
+      success: true,
+      data: result,
+    });
+  } catch (error) {
+    res.json({
+      success: false,
+    });
+  }
+});
+
 //listen
 app.listen(port, () => {
   console.log(`Server is listening to port ${port}`);
