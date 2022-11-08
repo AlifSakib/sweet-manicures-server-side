@@ -4,6 +4,7 @@ const cors = require("cors");
 
 require("dotenv").config();
 require("colors");
+const jwt = require("jsonwebtoken");
 
 const port = process.send.PORT || 5000;
 const app = express();
@@ -33,12 +34,35 @@ async function dbConnect() {
 }
 dbConnect();
 
+//verify Jwt
+
+function verifyJWT(req, res, next) {
+  const authHeader = req.headers.authorization;
+  if (!authHeader) {
+    res.json({
+      message: "Unauthorized Access",
+      status: 401,
+    });
+  }
+  const token = authHeader.split(" ")[1];
+  jwt.verify(token, process.env.ACCESS_TOKEN, (error, decode) => {
+    if (error) {
+      res.json({
+        message: "Forbidden",
+        status: 403,
+      });
+    }
+    req.decode = decode;
+    next();
+  });
+}
+
 //services collections
 const serviceCollection = client.db("Dlux").collection("services");
 app.get("/services", async (req, res) => {
   try {
     const query = {};
-    const cursor = serviceCollection.find(query);
+    const cursor = serviceCollection.find(query).sort({ _id: -1 });
     const services = await cursor.limit(3).toArray();
     res.json({
       success: true,
@@ -128,7 +152,14 @@ app.get("/reviews/:id", async (req, res) => {
   }
 });
 
-app.get("/reviews", async (req, res) => {
+app.get("/reviews", verifyJWT, async (req, res) => {
+  const decode = req.decode;
+  if (decode?.email !== req.query.email) {
+    res.json({
+      status: 403,
+      message: "Unauthorized Email",
+    });
+  }
   try {
     let query = {};
     if (req.query.email) {
@@ -195,6 +226,16 @@ app.patch("/editReview/:id", async (req, res) => {
       success: false,
     });
   }
+});
+
+//jwt
+
+app.post("/jwt", async (req, res) => {
+  const user = req.body;
+  const token = jwt.sign(user, process.env.ACCESS_TOKEN, { expiresIn: "1h" });
+  res.json({
+    token: token,
+  });
 });
 
 //listen
