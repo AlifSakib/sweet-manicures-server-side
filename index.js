@@ -163,6 +163,39 @@ app.delete("/reviews/:id", async (req, res) => {
     });
   }
 });
+app.get("/review/:id", async (req, res) => {
+  const id = req.params.id;
+  const query = { _id: ObjectId(id) };
+  const review = await reviewCollections.findOne(query);
+  res.send(review);
+});
+
+app.patch("/editReview/:id", async (req, res) => {
+  try {
+    const review = req.body;
+    const id = req.params.id;
+    const filter = { _id: ObjectId(id) };
+    const option = { upsert: true };
+    const updateReview = {
+      $set: {
+        img: review.image,
+        message: review.message,
+      },
+    };
+    const result = await reviewCollections.updateOne(
+      filter,
+      updateReview,
+      option
+    );
+    res.json({
+      success: true,
+    });
+  } catch (error) {
+    res.json({
+      success: false,
+    });
+  }
+});
 
 //listen
 app.listen(port, () => {
