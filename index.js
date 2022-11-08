@@ -115,7 +115,7 @@ app.get("/reviews/:id", async (req, res) => {
   try {
     const id = req.params.id;
     const query = { service_id: id };
-    const cursor = reviewCollections.find(query);
+    const cursor = reviewCollections.find(query).sort({ _id: -1 });
     const reviews = await cursor.toArray();
     res.json({
       success: true,
