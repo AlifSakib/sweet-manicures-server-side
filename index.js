@@ -1,4 +1,4 @@
-const { MongoClient, ServerApiVersion } = require("mongodb");
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const express = require("express");
 const cors = require("cors");
 
@@ -59,6 +59,53 @@ app.get("/services/all", async (req, res) => {
     res.json({
       success: true,
       data: services,
+    });
+  } catch (error) {
+    res.json({
+      success: false,
+    });
+  }
+});
+
+app.get("/services/:id", async (req, res) => {
+  try {
+    const id = req.params.id;
+    const query = { _id: ObjectId(id) };
+    const service = await serviceCollection.findOne(query);
+    res.json({
+      success: true,
+      data: service,
+    });
+  } catch (error) {
+    success: false;
+  }
+});
+
+const reviewCollections = client.db("Dlux").collection("reviews");
+app.post("/reviews", async (req, res) => {
+  try {
+    const review = req.body;
+    const result = await reviewCollections.insertOne(review);
+    res.json({
+      success: true,
+      data: result,
+    });
+  } catch (error) {
+    res.json({
+      success: false,
+    });
+  }
+});
+
+app.get("/reviews/:id", async (req, res) => {
+  try {
+    const id = req.params.id;
+    const query = { service_id: id };
+    const cursor = reviewCollections.find(query);
+    const reviews = await cursor.toArray();
+    res.json({
+      success: true,
+      data: reviews,
     });
   } catch (error) {
     res.json({
