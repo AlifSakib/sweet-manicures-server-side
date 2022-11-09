@@ -39,20 +39,14 @@ dbConnect();
 function verifyJWT(req, res, next) {
   const authHeader = req.headers.authorization;
   if (!authHeader) {
-    res.json({
-      message: "Unauthorized Access",
-      status: 401,
-    });
+    return res.status(401).send({ message: "Unauthorized Access" });
   }
   const token = authHeader.split(" ")[1];
-  jwt.verify(token, process.env.ACCESS_TOKEN, (error, decode) => {
-    if (error) {
-      res.json({
-        message: "Forbidden",
-        status: 403,
-      });
+  jwt.verify(token, process.env.ACCESS_TOKEN, function (err, decoded) {
+    if (err) {
+      return res.status(403).send({ message: "Forbidden" });
     }
-    req.decode = decode;
+    req.decoded = decoded;
     next();
   });
 }
@@ -153,12 +147,9 @@ app.get("/reviews/:id", async (req, res) => {
 });
 
 app.get("/reviews", verifyJWT, async (req, res) => {
-  const decode = req.decode;
-  if (decode?.email !== req.query.email) {
-    res.json({
-      status: 403,
-      message: "Unauthorized Email",
-    });
+  const decoded = req.decoded;
+  if (decoded.email !== req.query.email) {
+    res.status(403).send({ message: "Unauthorized Access" });
   }
   try {
     let query = {};
@@ -230,12 +221,10 @@ app.patch("/editReview/:id", async (req, res) => {
 
 //jwt
 
-app.post("/jwt", async (req, res) => {
+app.post("/jwt", (req, res) => {
   const user = req.body;
   const token = jwt.sign(user, process.env.ACCESS_TOKEN, { expiresIn: "1h" });
-  res.json({
-    token: token,
-  });
+  res.send({ token });
 });
 
 //listen
